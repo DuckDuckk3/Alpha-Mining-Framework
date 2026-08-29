@@ -1,0 +1,28 @@
+# Credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Runtime data (not source code)
+log/
+results/
+data/
+cache/
+
+# OS files
+.DS_Store
+.CACHEDIR.TAG
+.lock
+
+# Alpha data (contains backtest results, may be large)
+alpha/
+
+# IDE config
+.idea/
+
+# Keep project config
+!.env.example
