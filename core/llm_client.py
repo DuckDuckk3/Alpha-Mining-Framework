@@ -1,7 +1,7 @@
 """
 Unified LLM Client for Alpha Generation
 
-Supports both Ollama (local) and DeepSeek API for generating
+Supports Ollama (local), DeepSeek API, and Gemini API for generating
 WorldQuant Brain alpha expressions.
 """
 
@@ -15,14 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 class LLMClient:
-    """Unified LLM client supporting Ollama and DeepSeek API."""
+    """Unified LLM client supporting Ollama, DeepSeek API, and Gemini API."""
 
     def __init__(self, provider: str = "auto"):
         """
         Initialize LLM client.
 
         Args:
-            provider: "ollama", "deepseek", or "auto" (tries DeepSeek first, falls back to Ollama)
+            provider: "ollama", "deepseek", "gemini", or "auto"
+                      (tries Gemini or DeepSeek API first, falls back to Ollama)
         """
         self.provider = provider
         self._setup_provider()
@@ -30,21 +31,50 @@ class LLMClient:
     def _setup_provider(self):
         """Setup the LLM provider based on configuration."""
         if self.provider == "auto":
-            # Try DeepSeek first (faster, no local GPU needed)
+            # Check for API keys in environment variables
+            gemini_key = os.getenv("GEMINI_API_KEY")
             deepseek_key = os.getenv("DEEPSEEK_API_KEY")
-            if deepseek_key:
+
+            if gemini_key:
+                self.provider = "gemini"
+                logger.info("Using Gemini API")
+            elif deepseek_key:
                 self.provider = "deepseek"
                 logger.info("Using DeepSeek API")
             else:
                 self.provider = "ollama"
                 logger.info("Using Ollama (local)")
 
-        if self.provider == "deepseek":
+        if self.provider == "gemini":
+            self._setup_gemini()
+        elif self.provider == "deepseek":
             self._setup_deepseek()
         elif self.provider == "ollama":
             self._setup_ollama()
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
+
+    def _setup_gemini(self):
+        """Setup Gemini API client via OpenAI compatibility endpoint."""
+        try:
+            from openai import OpenAI
+            api_key = os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                raise ValueError("GEMINI_API_KEY not set in .env")
+
+            base_url = os.getenv(
+                "GEMINI_BASE_URL",
+                "https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+            self.client = OpenAI(
+                api_key=api_key,
+                base_url=base_url,
+                timeout=120.0
+            )
+            self.model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+            logger.info("Gemini API client initialized")
+        except ImportError:
+            raise ImportError("openai package required for Gemini API: pip install openai")
 
     def _setup_deepseek(self):
         """Setup DeepSeek API client."""
@@ -59,10 +89,10 @@ class LLMClient:
                 base_url="https://api.deepseek.com",
                 timeout=120.0
             )
-            self.model = "deepseek-v4-pro"
+            self.model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro")
             logger.info("DeepSeek API client initialized")
         except ImportError:
-            raise ImportError("openai package required for DeepSeek: pip install openai")
+            raise ImportError("openai package required for DeepSeek API: pip install openai")
 
     def _setup_ollama(self):
         """Setup Ollama client."""
@@ -90,10 +120,28 @@ class LLMClient:
         Returns:
             List of alpha dicts with 'expression', 'logic', and optional 'settings'
         """
-        if self.provider == "deepseek":
+        if self.provider == "gemini":
+            return self._generate_gemini(system_prompt, user_prompt)
+        elif self.provider == "deepseek":
             return self._generate_deepseek(system_prompt, user_prompt)
         else:
             return self._generate_ollama(system_prompt, user_prompt)
+
+    def _generate_gemini(self, system_prompt: str, user_prompt: str) -> List[Dict]:
+        """Generate using Gemini API."""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+            content = response.choices[0].message.content
+            return self._extract_json(content)
+        except Exception as e:
+            logger.error(f"Gemini API error: {e}")
+            return []
 
     def _generate_deepseek(self, system_prompt: str, user_prompt: str) -> List[Dict]:
         """Generate using DeepSeek API."""
