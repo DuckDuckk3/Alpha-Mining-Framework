@@ -24,17 +24,47 @@ def load_credentials() -> tuple[str, str]:
     return username, password
 
 
+# ── LLM Configuration Getters ──────────────────────────────────────────────
+
+def get_llm_provider() -> str:
+    """Get the active LLM provider: 'deepseek', 'ollama', or 'gemini'."""
+    return os.getenv("LLM_PROVIDER", "deepseek").lower()
+
+
 def get_ollama_url() -> str:
     return os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 
+def get_deepseek_api_key() -> str:
+    return os.getenv("DEEPSEEK_API_KEY", "")
+
+
+def get_deepseek_base_url() -> str:
+    return os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+
+
+def get_gemini_api_key() -> str:
+    return os.getenv("GEMINI_API_KEY", "")
+
+
+def get_gemini_base_url() -> str:
+    return os.getenv(
+        "GEMINI_BASE_URL",
+        "https://generativelanguage.googleapis.com/v1beta/openai/"
+    )
+
+
+def get_gemini_model() -> str:
+    return os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
+
 def get_default_model() -> str:
-    """Get the default Ollama model name, with env/file override.
+    """Get the default model name with env/file override.
 
     Checks (in order):
       1. WQ_DEFAULT_MODEL env var
       2. data/model_config.json file
-      3. fallback: 'qwen3.5:35b'
+      3. fallback: provider-specific default
     """
     env_model = os.getenv("WQ_DEFAULT_MODEL")
     if env_model:
@@ -52,6 +82,11 @@ def get_default_model() -> str:
         except Exception:
             pass
 
+    provider = get_llm_provider()
+    if provider == "gemini":
+        return get_gemini_model()
+    elif provider == "deepseek":
+        return "deepseek-coder"
     return "qwen3.5:35b"
 
 
@@ -90,8 +125,10 @@ def fix_session_proxy(sess: requests.Session) -> None:
         }
         logger.info(f"Set HTTP proxy for session: {http_proxy}")
     elif http_proxy and 'socks' in http_proxy.lower():
-        logger.warning(f"Proxy {http_proxy} is SOCKS-based, which may cause SSL errors. "
-                       f"Consider setting HTTPS_PROXY to an HTTP proxy (e.g. http://127.0.0.1:7897)")
+        logger.warning(
+            f"Proxy {http_proxy} is SOCKS-based, which may cause SSL errors. "
+            f"Consider setting HTTPS_PROXY to an HTTP proxy (e.g. http://127.0.0.1:7897)"
+        )
         sess.proxies = {
             'http': http_proxy,
             'https': http_proxy,
@@ -106,11 +143,9 @@ def fix_session_proxy(sess: requests.Session) -> None:
     except ImportError:
         logger.warning("certifi not installed, using default SSL certificates")
 
-    # Robust retry strategy (borrowed from forum Super Alpha framework)
-    # Auto-retries on 429 (rate limit), 500, 502, 503, 504
     retry_strategy = requests.adapters.Retry(
         total=7,
-        backoff_factor=2,  # exponential: 2s, 4s, 8s, 16s, 32s, 64s, 128s
+        backoff_factor=2,
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["HEAD", "GET", "OPTIONS", "POST", "PATCH"],
     )
