@@ -1,17 +1,18 @@
 """
-飞书 API 客户端 — 处理消息解析和回复。
+Feishu API Client — Handles message parsing and replies.
 """
 
 import os
 import logging
 import requests
+import json
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 class FeishuClient:
-    """飞书 API 客户端，用于接收和回复消息。"""
+    """Feishu API client for receiving and replying to messages."""
 
     def __init__(self, app_id: str = None, app_secret: str = None):
         self.app_id = app_id or os.getenv("FEISHU_APP_ID")
@@ -23,7 +24,7 @@ class FeishuClient:
         return bool(self.app_id and self.app_secret)
 
     def _get_tenant_token(self, force_refresh: bool = False) -> str:
-        """获取 tenant_access_token（带缓存）。"""
+        """Get tenant_access_token (with caching)."""
         if self._tenant_token and not force_refresh:
             return self._tenant_token
 
@@ -40,12 +41,12 @@ class FeishuClient:
             self._tenant_token = data["tenant_access_token"]
             return self._tenant_token
         else:
-            logger.error(f"获取 tenant_access_token 失败: {data}")
+            logger.error(f"Failed to get tenant_access_token: {data}")
             self._tenant_token = None
             return None
 
     def verify_challenge(self, body: dict) -> dict:
-        """处理飞书 webhook 验证请求。"""
+        """Handle Feishu webhook verification requests."""
         challenge = body.get("challenge")
         if challenge:
             return {"challenge": challenge}
@@ -53,31 +54,30 @@ class FeishuClient:
 
     def parse_message(self, body: dict) -> tuple:
         """
-        解析消息事件。
-        返回: (message_id, chat_id, text_content) 或 (None, None, None)
+        Parse message events.
+        Returns: (message_id, chat_id, text_content) or (None, None, None)
         """
         try:
-            # 飞书事件格式
+            # Feishu event format
             event = body.get("event", {})
             message = event.get("message", {})
 
-            logger.debug(f"收到事件: {body}")
+            logger.debug(f"Received event: {body}")
 
             message_id = message.get("message_id")
             chat_id = message.get("chat_id")
             msg_type = message.get("message_type")
 
-            # 只处理文本消息
+            # Process text messages only
             if msg_type != "text":
                 return None, None, None
 
-            # 解析文本内容
+            # Parse text content
             content = message.get("content", "{}")
-            import json
             text = json.loads(content).get("text", "").strip()
 
-            # 去掉飞书自动添加的 @ 提及前缀
-            # 格式: @_user_1 /summary 或 @_user_1 空格 /summary
+            # Remove automatically added @mention prefix by Feishu
+            # Format: @_user_1 /summary or @_user_1 space /summary
             if text.startswith("@_user_"):
                 parts = text.split(maxsplit=1)
                 text = parts[1] if len(parts) > 1 else ""
@@ -85,17 +85,16 @@ class FeishuClient:
             return message_id, chat_id, text
 
         except Exception as e:
-            logger.error(f"解析消息失败: {e}")
+            logger.error(f"Failed to parse message: {e}")
             return None, None, None
 
     def reply_message(self, message_id: str, title: str, content: str) -> bool:
-        """回复消息（Markdown 卡片格式）。"""
-        import json
+        """Reply to message (Markdown card format)."""
         token = self._get_tenant_token()
         if not token:
             return False
 
-        # 飞书卡片 V2 格式 - content 必须是字符串
+        # Feishu Card V2 format - content must be a string
         card = {
             "schema": "2.0",
             "header": {
@@ -129,9 +128,9 @@ class FeishuClient:
             )
             data = resp.json()
 
-            # Token 过期，刷新后重试一次
+            # Token expired, retry once after refreshing
             if data.get("code") == 99991663:
-                logger.info("Token 过期，刷新后重试...")
+                logger.info("Token expired, refreshing and retrying...")
                 token = self._get_tenant_token(force_refresh=True)
                 if not token:
                     return False
@@ -147,13 +146,13 @@ class FeishuClient:
                 data = resp.json()
 
             if data.get("code") == 0:
-                logger.info(f"回复消息成功: {message_id}")
+                logger.info(f"Message replied successfully: {message_id}")
                 return True
             else:
-                logger.warning(f"回复消息失败: {data}")
+                logger.warning(f"Failed to reply message: {data}")
                 return False
         except Exception as e:
-            logger.warning(f"回复消息异常: {e}")
+            logger.warning(f"Exception while replying message: {e}")
             return False
 
 
@@ -163,7 +162,7 @@ _client_instance: Optional[FeishuClient] = None
 
 
 def get_feishu_client() -> FeishuClient:
-    """获取全局 FeishuClient 单例。"""
+    """Get global FeishuClient singleton instance."""
     global _client_instance
     if _client_instance is None:
         _client_instance = FeishuClient()
