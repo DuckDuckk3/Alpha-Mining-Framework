@@ -1,5 +1,5 @@
 """
-通知模块 — 飞书 Webhook 通知，支持 Alpha 发现、定期汇总、异常熔断报警。
+Notification Module — Feishu Webhook Notifications, supporting Alpha Discovery, Periodic Summary, and Circuit Breaker Alerts.
 """
 
 import os
@@ -11,16 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class Notifier:
-    """飞书 Webhook 通知器。"""
+    """Feishu Webhook Notifier."""
 
     def __init__(self):
         self.webhook_url: Optional[str] = os.getenv("FEISHU_WEBHOOK")
         if self.webhook_url:
-            logger.info("飞书通知已启用")
+            logger.info("Feishu notification enabled")
         else:
-            logger.info("未配置 FEISHU_WEBHOOK，通知已禁用")
+            logger.info("FEISHU_WEBHOOK not configured, notification disabled")
 
-        # 熔断计数器
+        # Circuit breaker counters
         self._consecutive_auth_failures = 0
         self._consecutive_llm_errors = 0
 
@@ -29,7 +29,7 @@ class Notifier:
         return bool(self.webhook_url)
 
     def send(self, title: str, content: str) -> bool:
-        """发送飞书消息（富文本格式）。返回是否成功。"""
+        """Send Feishu message (Rich Text format). Returns success status."""
         if not self.webhook_url:
             return False
 
@@ -52,22 +52,22 @@ class Notifier:
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("code") == 0:
-                    logger.info(f"飞书通知发送成功: {title}")
+                    logger.info(f"Feishu notification sent successfully: {title}")
                     return True
                 else:
-                    logger.warning(f"飞书通知失败: {data}")
+                    logger.warning(f"Feishu notification failed: {data}")
             else:
-                logger.warning(f"飞书通知 HTTP {resp.status_code}")
+                logger.warning(f"Feishu notification HTTP {resp.status_code}")
         except Exception as e:
-            logger.warning(f"飞书通知异常: {e}")
+            logger.warning(f"Feishu notification exception: {e}")
         return False
 
     def send_markdown(self, title: str, markdown: str, template: str = "blue") -> bool:
-        """发送飞书 Markdown 卡片消息。返回是否成功。"""
+        """Send Feishu Markdown card message. Returns success status."""
         if not self.webhook_url:
             return False
 
-        # 飞书卡片 V2 格式
+        # Feishu Card V2 format
         payload = {
             "msg_type": "interactive",
             "card": {
@@ -96,17 +96,17 @@ class Notifier:
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("code") == 0:
-                    logger.info(f"飞书 Markdown 通知发送成功: {title}")
+                    logger.info(f"Feishu Markdown notification sent successfully: {title}")
                     return True
                 else:
-                    logger.warning(f"飞书通知失败: {data}")
+                    logger.warning(f"Feishu notification failed: {data}")
             else:
-                logger.warning(f"飞书通知 HTTP {resp.status_code}")
+                logger.warning(f"Feishu notification HTTP {resp.status_code}")
         except Exception as e:
-            logger.warning(f"飞书通知异常: {e}")
+            logger.warning(f"Feishu notification exception: {e}")
         return False
 
-    # ── Alpha 发现通知 ──────────────────────────────────────────────
+    # ── Alpha Discovery Notification ──────────────────────────────────
 
     def notify_alpha(
         self,
@@ -117,20 +117,20 @@ class Notifier:
         expression: str,
         member_id: str = "",
     ):
-        """发现符合条件的 Alpha 时发送通知（Markdown 卡片格式）。"""
+        """Send notification when a qualified Alpha is discovered (Markdown card format)."""
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         expr_short = expression[:80] + ("..." if len(expression) > 80 else "")
 
         lines = [
-            f"**发现时间:** {timestamp}",
+            f"**Discovery Time:** {timestamp}",
             "",
-            "## Alpha 信息",
+            "## Alpha Information",
             f"- **ID:** {alpha_id}",
             f"- **Member:** {member_id or 'N/A'}",
             "",
-            "## 指标",
-            "| 指标 | 值 |",
+            "## Metrics",
+            "| Metric | Value |",
             "|------|------|",
             f"| Sharpe | **{sharpe:.2f}** |",
             f"| Fitness | **{fitness:.2f}** |",
@@ -140,9 +140,9 @@ class Notifier:
             f"```\n{expr_short}\n```",
         ]
 
-        self.send_markdown("发现新 Alpha!", "\n".join(lines), template="green")
+        self.send_markdown("New Alpha Discovered!", "\n".join(lines), template="green")
 
-    # ── 相关性检查通知 ──────────────────────────────────────────────
+    # ── Correlation Check Notification ──────────────────────────────
 
     def notify_correlation_check(
         self,
@@ -152,44 +152,44 @@ class Notifier:
         failed_alphas: list,
         summary: dict = None,
     ):
-        """相关性检查结果通知（Markdown 卡片格式）。"""
+        """Correlation check result notification (Markdown card format)."""
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         lines = [
-            f"**检查时间:** {timestamp}",
+            f"**Check Time:** {timestamp}",
             "",
-            "## 相关性检查结果",
-            f"- 检查总数: **{total}**",
+            "## Correlation Check Results",
+            f"- Total Checked: **{total}**",
             f"- PASS: **{passed}** ✅",
             f"- FAIL: **{failed}** ❌",
         ]
 
         if failed_alphas:
             lines.append("")
-            lines.append("## 失败详情")
-            lines.append("| Alpha ID | 相关性值 | 限制值 |")
-            lines.append("|----------|----------|--------|")
+            lines.append("## Failure Details")
+            lines.append("| Alpha ID | Correlation Value | Limit |")
+            lines.append("|----------|-------------------|-------|")
             for alpha in failed_alphas[:10]:
                 lines.append(f"| {alpha['alpha_id']} | {alpha['value']:.4f} | {alpha['limit']} |")
             if len(failed_alphas) > 10:
-                lines.append(f"| ... | 共 {len(failed_alphas)} 个 | |")
+                lines.append(f"| ... | Total {len(failed_alphas)} items | |")
 
         if summary:
             lines.append("")
-            lines.append("## 因子库汇总")
-            lines.append(f"- 因子总数: **{summary.get('total', 0)}**")
-            lines.append(f"- 已提交: **{summary.get('submitted', 0)}**")
-            lines.append(f"- 待检查: **{summary.get('pending', 0)}**")
-            lines.append(f"- 可提交: **{summary.get('unsubmitted', 0)}**")
+            lines.append("## Alpha Pool Summary")
+            lines.append(f"- Total Alphas: **{summary.get('total', 0)}**")
+            lines.append(f"- Submitted: **{summary.get('submitted', 0)}**")
+            lines.append(f"- Pending Check: **{summary.get('pending', 0)}**")
+            lines.append(f"- Submittable: **{summary.get('unsubmitted', 0)}**")
             lines.append("")
-            lines.append("## 累计统计")
-            lines.append(f"- 全部因子: **{summary.get('new_all_time', 0)}**")
-            lines.append(f"- 可提交: **{summary.get('submittable_all_time', 0)}**")
+            lines.append("## All-Time Statistics")
+            lines.append(f"- Total Alphas: **{summary.get('new_all_time', 0)}**")
+            lines.append(f"- Submittable: **{summary.get('submittable_all_time', 0)}**")
 
-        self.send_markdown("相关性检查报告", "\n".join(lines))
+        self.send_markdown("Correlation Check Report", "\n".join(lines))
 
-    # ── 定期汇总通知 ────────────────────────────────────────────────
+    # ── Periodic Summary Notification ────────────────────────────────
 
     def notify_summary(
         self,
@@ -201,21 +201,21 @@ class Notifier:
         rescue_pool: int,
         member_id: str = "",
     ):
-        """定期汇总通知（Markdown 卡片格式）。"""
+        """Periodic summary notification (Markdown card format)."""
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         lines = [
-            f"**汇总时间:** {timestamp}",
+            f"**Summary Time:** {timestamp}",
             "",
-            "## 测试结果",
-            "| 项目 | 数量 |",
+            "## Test Results",
+            "| Item | Count |",
             "|------|------|",
-            f"| 已测试 | **{tested}** |",
-            f"| 通过 | **{passed}** ✅ |",
-            f"| 失败 | **{failed}** ❌ |",
+            f"| Tested | **{tested}** |",
+            f"| Passed | **{passed}** ✅ |",
+            f"| Failed | **{failed}** ❌ |",
             "",
-            "## 最佳指标",
+            "## Best Metrics",
             f"- Sharpe: **{best_sharpe:.2f}**",
             f"- Fitness: **{best_fitness:.2f}**",
             "",
@@ -224,50 +224,50 @@ class Notifier:
         if member_id:
             lines.append(f"**Member:** {member_id}")
 
-        self.send_markdown("挖矿进度汇总", "\n".join(lines), template="orange")
+        self.send_markdown("Mining Progress Summary", "\n".join(lines), template="orange")
 
-    # ── 异常熔断报警 ────────────────────────────────────────────────
+    # ── Circuit Breaker Alerts ──────────────────────────────────────
 
     def record_auth_failure(self):
-        """记录一次鉴权失败，连续 3 次触发熔断报警。"""
+        """Record an authentication failure. Trigger alert on 3 consecutive failures."""
         self._consecutive_auth_failures += 1
         if self._consecutive_auth_failures >= 3:
             self.send(
-                "矿机宕机警告",
-                "连续 {} 次鉴权失败 (AUTH_FAILED)\n"
-                "Token 可能已过期，矿机已停止运行。\n"
-                "请检查账号密码或重新登录。".format(
+                "Miner Shutdown Warning",
+                "{} consecutive authentication failures (AUTH_FAILED)\n"
+                "Token may have expired, miner has stopped running.\n"
+                "Please check account credentials or re-login.".format(
                     self._consecutive_auth_failures
                 ),
             )
 
     def record_auth_success(self):
-        """鉴权成功，重置计数器。"""
+        """Authentication succeeded, reset counter."""
         self._consecutive_auth_failures = 0
 
     def record_llm_error(self):
-        """记录一次 LLM 调用失败，连续 5 次触发熔断报警。"""
+        """Record an LLM call failure. Trigger alert on 5 consecutive failures."""
         self._consecutive_llm_errors += 1
         if self._consecutive_llm_errors >= 5:
             self.send(
-                "矿机宕机警告",
-                "连续 {} 次 LLM 调用失败\n"
-                "DeepSeek API 额度可能已耗尽。\n"
-                "请检查 API Key 余额。".format(
+                "Miner Shutdown Warning",
+                "{} consecutive LLM call failures\n"
+                "DeepSeek API quota may be exhausted.\n"
+                "Please check API Key balance.".format(
                     self._consecutive_llm_errors
                 ),
             )
 
     def record_llm_success(self):
-        """LLM 调用成功，重置计数器。"""
+        """LLM call succeeded, reset counter."""
         self._consecutive_llm_errors = 0
 
     def notify_fatal(self, reason: str, member_id: str = ""):
-        """致命错误导致矿机停止时发送最高级别警告。"""
+        """Send highest level alert when a fatal error stops the miner."""
         lines = [reason]
         if member_id:
             lines.append("Member: {}".format(member_id))
-        self.send("矿机宕机警告", "\n".join(lines))
+        self.send("Miner Shutdown Warning", "\n".join(lines))
 
 
 _notifier: Optional[Notifier] = None
