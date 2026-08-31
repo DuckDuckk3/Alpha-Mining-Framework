@@ -376,6 +376,23 @@ Retrieve data fields and operators from the WorldQuant Brain API.
 | `OLLAMA_MODEL`     | No           | Ollama model name         |
 | `FEISHU_WEBHOOK`   | No           | Feishu bot Webhook URL    |
 
+### LLM Provider Configuration
+
+The framework supports three LLM providers configurable via `LLM_PROVIDER` in `.env`:
+
+| Provider | `LLM_PROVIDER` | Features & Use Case | Key Environment Variables |
+| :--- | :--- | :--- | :--- |
+| **DeepSeek** | `deepseek` | Cost-effective, specialized in quant reasoning and code generation | `DEEPSEEK_API_KEY` |
+| **Google Gemini** | `gemini` | High speed, generous free tier, strong long-context processing | `GEMINI_API_KEY` |
+| **Ollama** | `ollama` | Fully offline, local execution, 100% privacy | `OLLAMA_URL` |
+
+#### How to configure Google Gemini:
+1. Obtain an API Key from Google AI Studio.
+2. Update your `.env` configuration:
+   ```env
+   LLM_PROVIDER=gemini
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GEMINI_MODEL=gemini-2.0-flash
 ## Using the DeepSeek API
 
 The DeepSeek API is the recommended choice because:
