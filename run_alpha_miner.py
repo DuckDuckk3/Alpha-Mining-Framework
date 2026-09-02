@@ -1671,4 +1671,77 @@ Neutralization is controlled by settings, do not include group_neutralize in the
 
                         # Send summary notification every 100 factors (using DB full stats)
                         if self.stats["tested"] % 100 == 0:
-                            db_stats = self.alp
+                            db_stats = self.alpha_db.get_all_time_stats()
+                            self.notifier.notify_summary(
+                                tested=db_stats["tested"],
+                                passed=db_stats["passed"],
+                                failed=db_stats["failed"],
+                                best_sharpe=db_stats["best_sharpe"],
+                                best_fitness=db_stats["best_fitness"],
+                                rescue_pool=rescue_count,
+                                member_id=self.member_id,
+                            )
+
+                except KeyboardInterrupt:
+                    logger.info("Received interrupt, shutting down...")
+                    break
+                except Exception as e:
+                    logger.error(f"Main loop error: {e}")
+                    time.sleep(1)
+
+
+def main():
+    """Entry point."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="WorldQuant Brain Alpha Miner")
+    parser.add_argument(
+        "--llm",
+        choices=["auto", "ollama", "deepseek"],
+        default="auto",
+        help="LLM provider to use"
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=2,
+        help="Number of concurrent simulation workers (default: 2, max: 2 due to API limit)"
+    )
+    parser.add_argument(
+        "--member-id",
+        type=str,
+        default="default",
+        help="Member ID for shared pool (prevents file conflicts in team)"
+    )
+    parser.add_argument(
+        "--username",
+        type=str,
+        default=None,
+        help="WQ username (overrides .env)"
+    )
+    parser.add_argument(
+        "--password",
+        type=str,
+        default=None,
+        help="WQ password (overrides .env)"
+    )
+    parser.add_argument(
+        "--delay0-prob",
+        type=float,
+        default=0.5,
+        help="Probability of mining delay=0 factors (default: 0.5)"
+    )
+    args = parser.parse_args()
+
+    miner = AlphaMiner(
+        llm_provider=args.llm,
+        member_id=args.member_id,
+        username=args.username,
+        password=args.password,
+        delay0_prob=args.delay0_prob,
+    )
+    miner.run(max_workers=args.workers)
+
+
+if __name__ == "__main__":
+    main()
