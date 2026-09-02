@@ -908,4 +908,767 @@ Neutralization is controlled by settings; do NOT include group_neutralize in the
 
         payload = {
             "type": "REGULAR",
-            "s
+            "settings": settings,
+            "regular": expression
+        }
+
+        try:
+            # Submit simulation with retry for concurrent limit
+            for attempt in range(3):
+                resp = self.session.post(
+                    f"{BASE_URL}/simulations",
+                    json=payload,
+                    verify=False,
+                    timeout=30
+                )
+
+                # Handle auth failures
+                if resp.status_code in [401, 403] or "Incorrect authentication" in resp.text:
+                    # Try to re-authenticate
+                    if self.authenticate():
+                        # Re-authentication successful, retry request
+                        resp = self.session.post(
+                            f"{BASE_URL}/simulations",
+                            json=payload,
+                            verify=False,
+                            timeout=30
+                        )
+                        if resp.status_code == 201:
+                            break
+                    return {"error": "AUTH_FAILED"}
+
+                # Handle concurrent limit
+                if "CONCURRENT_SIMULATION_LIMIT_EXCEEDED" in resp.text:
+                    wait_time = 30 * (attempt + 1)
+                    logger.warning(f"Concurrent limit hit, waiting {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+
+                if resp.status_code != 201:
+                    return {"error": f"Simulation failed: {resp.text[:200]}"}
+
+                break
+            else:
+                return {"error": "Max retries exceeded"}
+
+            # Get simulation ID from Location header
+            sim_id = resp.headers.get("Location", "").split("/")[-1]
+            if not sim_id:
+                return {"error": "No simulation ID returned"}
+
+            # Poll for results
+            return self._poll_simulation(sim_id)
+
+        except Exception as e:
+            return {"error": f"Exception: {str(e)}"}
+
+    def _poll_simulation(self, sim_id: str, timeout: int = 300) -> Dict:
+        """Poll simulation until complete or timeout. Using exponential backoff strategy."""
+        start_time = time.time()
+        poll_interval = 2  # Initial polling interval 2 seconds
+        max_poll_interval = 16  # Maximum polling interval 16 seconds
+        poll_count = 0
+
+        while time.time() - start_time < timeout:
+            try:
+                resp = self.session.get(
+                    f"{BASE_URL}/simulations/{sim_id}",
+                    verify=False,
+                    timeout=30
+                )
+
+                if resp.status_code != 200:
+                    time.sleep(poll_interval)
+                    poll_interval = min(poll_interval * 2, max_poll_interval)
+                    continue
+
+                data = resp.json()
+                status = data.get("status")
+
+                if status in ["FINISHED", "WARNING", "COMPLETE", "COMPLETED"]:
+                    alpha_id = data.get("alpha")
+                    if alpha_id:
+                        # Get alpha performance
+                        alpha_resp = self.session.get(
+                            f"{BASE_URL}/alphas/{alpha_id}",
+                            verify=False,
+                            timeout=30
+                        )
+                        if alpha_resp.status_code == 200:
+                            alpha_data = alpha_resp.json()
+                            perf = alpha_data.get("is", {})
+                            settings = alpha_data.get("settings", {})
+                            return {
+                                "alpha_id": alpha_id,
+                                "sharpe": perf.get("sharpe", 0),
+                                "fitness": perf.get("fitness", 0),
+                                "turnover": perf.get("turnover", 0),
+                                "margin": perf.get("margin", 0),
+                                "returns": perf.get("returns", 0),
+                                "long_count": perf.get("longCount", 0),
+                                "short_count": perf.get("shortCount", 0),
+                                "drawdown": perf.get("drawdown", 0),
+                                "grade": alpha_data.get("grade", ""),
+                                "checks": perf.get("checks", []),
+                                "region": settings.get("region", "USA"),
+                                "universe": settings.get("universe", "TOP3000"),
+                                "delay": settings.get("delay", 1),
+                                "decay": settings.get("decay", 0),
+                                "neutralization": settings.get("neutralization", "NONE"),
+                                "truncation": settings.get("truncation", 0.08),
+                                "message": data.get("message", "Success")
+                            }
+                    return {"alpha_id": alpha_id, "status": "completed"}
+
+                elif status in ["ERROR", "FAILED"]:
+                    return {"error": data.get("message", "Unknown error")}
+
+                # Exponential backoff: If status is PENDING consecutively, increase wait interval
+                poll_count += 1
+                if poll_count > 3 and status == "PENDING":
+                    poll_interval = min(poll_interval * 1.5, max_poll_interval)
+
+                time.sleep(poll_interval)
+
+            except Exception as e:
+                logger.warning(f"Poll error: {e}")
+                time.sleep(poll_interval)
+                poll_interval = min(poll_interval * 2, max_poll_interval)
+
+        return {"error": "Simulation timeout"}
+
+    def submit_alpha(self, alpha_id: str) -> Dict:
+        """Submit alpha to WorldQuant Brain. Returns dict with success status and details."""
+        try:
+            resp = self.session.post(
+                f"{BASE_URL}/alphas/{alpha_id}/submit",
+                json={"type": "REGULAR"},
+                verify=False,
+                timeout=15
+            )
+
+            if resp.status_code == 201:
+                return {"success": True}
+            else:
+                # Capture error message from response
+                error_msg = resp.text[:200] if resp.text else "Unknown error"
+                return {"success": False, "error": error_msg}
+        except Exception as e:
+            logger.error(f"Submit error: {e}")
+            return {"success": False, "error": str(e)}
+
+    # ==========================================
+    # Result Processing
+    # ==========================================
+
+    def _has_failed_checks(self, checks: list) -> bool:
+        """Check if any checks have FAILED status."""
+        if not checks:
+            return False
+        return any(check.get("result") == "FAIL" for check in checks)
+
+    def _should_rescue_after_sweep(self, failed_checks: list) -> bool:
+        """Determine if it should enter rescue_pool after parameter tuning failure"""
+        # If failed checks contain non-rescuable types, discard
+        for check in failed_checks:
+            check_upper = check.upper()
+            if any(nr in check_upper for nr in NON_RESCUABLE_CHECKS):
+                return False
+        # If there are rescuable check types, enter rescue_pool
+        for check in failed_checks:
+            check_upper = check.upper()
+            if any(r in check_upper for r in RESCUABLE_CHECKS):
+                return True
+        # Default to not rescue
+        return False
+
+    def process_result(self, factor: Dict, result: Dict) -> bool:
+        """
+        Process simulation result and take action.
+        Returns False if fatal error occurred.
+        """
+        expression = factor.get("expression", "")
+        mod_used = factor.get("modules_used", [])
+
+        if "error" in result:
+            logger.error(f"Failed: {expression[:60]}... -> {result['error']}")
+            self.stats["failed"] += 1
+            self.record_module_stat(mod_used, False)
+
+            # Handle auth failure
+            if result["error"] == "AUTH_FAILED":
+                self.notifier.record_auth_failure()
+                logger.warning("Authentication expired, attempting re-login...")
+                if self.authenticate():
+                    self.notifier.record_auth_success()
+                    self.test_queue.put(factor)  # Re-queue factor
+                else:
+                    logger.error("Re-login failed, stopping")
+                    self.notifier.notify_fatal(
+                        "Authentication failed, re-login unsuccessful. Miner stopped.",
+                        member_id=self.member_id,
+                    )
+                    return False
+            return True
+
+        # Extract metrics (with None value protection)
+        sharpe = result.get("sharpe", 0) or 0
+        fitness = result.get("fitness", 0) or 0
+        alpha_id = result.get("alpha_id")
+        turnover = result.get("turnover", 0) or 0
+        margin = result.get("margin", 0) or 0
+
+        flipped_tag = " [FLIPPED]" if factor.get("flipped_from") else ""
+        logger.info(
+            f"Result: S={sharpe:.2f} F={fitness:.2f} T={turnover:.2f} M={margin:.2f}{flipped_tag} | "
+            f"{expression[:60]}..."
+        )
+
+        # Update best sharpe
+        if sharpe > self.stats["best_sharpe"]:
+            self.stats["best_sharpe"] = sharpe
+
+        # Check if meets submission criteria (Holy Grail)
+        is_holy_grail = (sharpe >= MIN_SHARPE and fitness >= MIN_FITNESS)
+        is_pool_worthy = is_holy_grail or (sharpe > 1.0 and fitness > 0.8)
+
+        if is_pool_worthy:
+            self.record_module_stat(mod_used, True)
+            self.add_to_shared_pool(expression, sharpe, fitness, factor.get("logic", ""))
+        else:
+            self.record_module_stat(mod_used, False)
+
+        # Only save alphas that meet submission criteria and pass all checks (no auto-submit)
+        checks = result.get("checks", [])
+        if is_holy_grail:
+            # Check if any checks failed
+            if self._has_failed_checks(checks):
+                failed_checks = [c["name"] for c in checks if c.get("result") == "FAIL"]
+                logger.warning(f"Alpha {alpha_id} failed checks: {failed_checks}")
+                logger.warning(f"  Expression: {expression[:80]}...")
+                logger.warning(f"  S={sharpe:.2f} F={fitness:.2f} T={turnover:.2f}")
+
+                # Record failure pattern
+                self._record_failed_pattern(expression, failed_checks)
+
+                # If pattern is already blacklisted, skip parameter sweep (saves approx. 12 mins)
+                if self.is_pattern_blacklisted(expression):
+                    logger.info(f"Pattern blacklisted, skipping parameter sweep for {alpha_id}")
+                elif self._try_parameter_sweep(alpha_id, expression, failed_checks):
+                    logger.info(f"Alpha {alpha_id} saved via parameter sweep")
+                else:
+                    # Parameter sweep failed, check if should rescue
+                    if self._should_rescue_after_sweep(failed_checks):
+                        logger.info(f"Adding alpha {alpha_id} to rescue pool (rescuable checks: {failed_checks})")
+                        self.alpha_db.add_to_rescue_pool(
+                            alpha_id=alpha_id,
+                            expression=expression,
+                            sharpe=sharpe,
+                            fitness=fitness,
+                            turnover=turnover,
+                            failed_checks=failed_checks,
+                            modules_used=mod_used
+                        )
+                    else:
+                        logger.info(f"Discarding alpha {alpha_id} (non-rescuable checks: {failed_checks})")
+            else:
+                logger.info(f"Found alpha! S={sharpe:.2f} F={fitness:.2f} (pending)")
+                self.stats["passed"] += 1
+
+                # Feishu (Lark) notification
+                self.notifier.notify_alpha(
+                    alpha_id=alpha_id or "N/A",
+                    sharpe=sharpe,
+                    fitness=fitness,
+                    turnover=turnover,
+                    expression=expression,
+                    member_id=self.member_id,
+                )
+
+                # Save to database as pending (will become unsubmitted after correlation check)
+                self.alpha_db.add_alpha(
+                    expression=expression,
+                    alpha_id=alpha_id,
+                    sharpe=sharpe,
+                    fitness=fitness,
+                    turnover=turnover,
+                    margin=margin,
+                    returns=result.get("returns", 0),
+                    long_count=result.get("long_count", 0),
+                    short_count=result.get("short_count", 0),
+                    drawdown=result.get("drawdown", 0),
+                    grade=result.get("grade", ""),
+                    checks=checks,
+                    source="pipeline",
+                    region=result.get("region", "USA"),
+                    universe=result.get("universe", "TOP3000"),
+                    delay=result.get("delay", 1),
+                    decay=result.get("decay", 0),
+                    neutralization=result.get("neutralization", "NONE"),
+                    truncation=result.get("truncation", 0.08),
+                    status="pending",
+                )
+
+        # Reverse factor detection (Sharpe < -0.8)
+        elif sharpe < -0.8:
+            logger.info(f"Found reverse factor (S={sharpe:.2f}), flipping sign...")
+            self.stats["flipped"] += 1
+
+            # Create flipped version
+            flipped_factor = factor.copy()
+            flipped_factor['expression'] = f"-1 * ({expression})"
+            flipped_factor['flipped_from'] = expression
+            self.test_queue.put(flipped_factor)
+
+        # Rescue mechanism for borderline alphas
+        elif (abs(sharpe) + abs(fitness)) > RESCUE_THRESHOLD:
+            logger.info(f"Rescuing borderline alpha: S={sharpe:.2f} F={fitness:.2f}")
+            self.stats["rescued"] += 1
+
+            # Add to rescue pool (will be picked up by rescue worker)
+            if alpha_id:
+                self.alpha_db.add_to_rescue_pool(
+                    alpha_id=alpha_id,
+                    expression=expression,
+                    sharpe=sharpe,
+                    fitness=fitness,
+                    turnover=turnover,
+                    failed_checks=[],
+                    modules_used=mod_used
+                )
+
+        self.stats["tested"] += 1
+        return True
+
+    # ==========================================
+    # LLM Producer Worker
+    # ==========================================
+
+    def llm_producer_worker(self, fields_data: Dict):
+        """Background thread for LLM alpha generation."""
+        logger.info("LLM producer thread started")
+
+        while True:
+            try:
+                # Control queue size
+                if self.test_queue.qsize() > 15:
+                    time.sleep(3)
+                    continue
+
+                # Clean up rescue pool periodically
+                self.alpha_db.cleanup_rescue_pool()
+
+                # Decide between new generation, crossover, and rescue
+                # 60% new generation, 20% crossover, 20% rescue
+                rand = random.random()
+
+                if rand < 0.6:
+                    # 60% chance: Generate new alphas
+                    alphas = self.generate_alphas(fields_data)
+                elif rand < 0.8:
+                    # 20% chance: Crossover from shared pool
+                    pool = self.load_shared_pool()
+                    if len(pool) >= 2:
+                        alphas = self.generate_crossover_alphas()
+                    else:
+                        alphas = self.generate_alphas(fields_data)
+                else:
+                    # 20% chance: Rescue from rescue pool
+                    rescue_count = self.alpha_db.count_rescue_pool()
+                    if rescue_count > 0:
+                        alphas = self.generate_rescue_alphas()
+                    else:
+                        alphas = self.generate_alphas(fields_data)
+
+                for alpha in alphas:
+                    if alpha.get("expression"):
+                        self.test_queue.put(alpha)
+
+                # Small delay to prevent overwhelming
+                time.sleep(1)
+
+            except Exception as e:
+                logger.error(f"LLM producer error: {e}")
+                time.sleep(5)
+
+    def _select_best_params(self, failed_checks: list) -> list:
+        """
+        Intelligently select the most likely successful parameter combinations based on failure types.
+        Returns a sorted list of parameter combinations, with the most likely successful ones first.
+        """
+        # Analyze failure types
+        has_turnover = any("TURNOVER" in check.upper() for check in failed_checks)
+        has_concentrated = any("CONCENTRATED" in check.upper() for check in failed_checks)
+        has_sub_universe = any("SUB_UNIVERSE" in check.upper() for check in failed_checks)
+
+        # Select best parameter combination based on failure types
+        if has_turnover:
+            # High turnover: Prioritize high decay and high truncation
+            priority_params = [
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 1},
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 0},
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 0},
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 1},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 1},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 0},
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 1},
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 0},
+            ]
+        elif has_concentrated:
+            # Concentrated weights: Prioritize INDUSTRY/SUBINDUSTRY neutralization
+            priority_params = [
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 1},
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 0},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 1},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 0},
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 0},
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 1},
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 1},
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 0},
+            ]
+        elif has_sub_universe:
+            # Sub-universe low Sharpe: Prioritize SECTOR/MARKET neutralization
+            priority_params = [
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 0},
+                {"neutralization": "SECTOR", "truncation": 0.08, "decay": 30, "delay": 1},
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 1},
+                {"neutralization": "MARKET", "truncation": 0.2, "decay": 50, "delay": 0},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 1},
+                {"neutralization": "SUBINDUSTRY", "truncation": 0.15, "decay": 20, "delay": 0},
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 1},
+                {"neutralization": "INDUSTRY", "truncation": 0.1, "decay": 10, "delay": 0},
+            ]
+        else:
+            # Default order
+            priority_params = SETTINGS_SWEEP
+
+        return priority_params
+
+    def _try_parameter_sweep(self, alpha_id: str, expression: str, failed_checks: list) -> bool:
+        """
+        Try different parameter combinations to fix check failures.
+        Uses smart parameter selection and early termination strategy.
+        Returns True if any combination passes all checks.
+        """
+        logger.info(f"Trying parameter sweep for alpha {alpha_id}...")
+
+        # Smart parameter combination selection
+        params_to_try = self._select_best_params(failed_checks)
+
+        # Record consecutive failure count for early termination
+        consecutive_failures = 0
+        max_consecutive_failures = 3  # Terminate early after 3 consecutive failures
+
+        for i, settings in enumerate(params_to_try):
+            logger.info(f"  Sweep {i+1}/{len(params_to_try)}: {settings}")
+            result = self.simulate_factor({
+                "expression": expression,
+                "settings": settings
+            })
+
+            if "error" not in result:
+                checks = result.get("checks", [])
+                if not self._has_failed_checks(checks):
+                    # Success! Save to database
+                    logger.info(f"  Parameter sweep succeeded with: {settings}")
+                    self.alpha_db.add_alpha(
+                        expression=expression,
+                        alpha_id=result.get("alpha_id"),
+                        sharpe=result.get("sharpe"),
+                        fitness=result.get("fitness"),
+                        turnover=result.get("turnover"),
+                        margin=result.get("margin"),
+                        returns=result.get("returns", 0),
+                        long_count=result.get("long_count", 0),
+                        short_count=result.get("short_count", 0),
+                        drawdown=result.get("drawdown", 0),
+                        grade=result.get("grade", ""),
+                        checks=checks,
+                        source="pipeline",
+                        region=result.get("region", "USA"),
+                        universe=result.get("universe", "TOP3000"),
+                        delay=settings.get("delay", 1),
+                        decay=settings.get("decay", 0),
+                        neutralization=settings.get("neutralization", "NONE"),
+                        truncation=settings.get("truncation", 0.08),
+                        status="pending",
+                    )
+                    return True
+                else:
+                    consecutive_failures += 1
+                    # Early termination: If 3 consecutive failures occur, and remaining combinations are similar parameters
+                    if consecutive_failures >= max_consecutive_failures and i >= 3:
+                        logger.info(f"  Early termination after {consecutive_failures} consecutive failures")
+                        break
+            else:
+                # If it's an authentication error, do not count towards consecutive failures
+                if result.get("error") != "AUTH_FAILED":
+                    consecutive_failures += 1
+
+        logger.info(f"All parameter sweep combinations failed for alpha {alpha_id}")
+        return False
+
+    def _get_check_suggestions(self, failed_checks: list) -> str:
+        """Get targeted suggestions based on failed checks."""
+        suggestions = []
+        for check_name in failed_checks:
+            check_upper = check_name.upper()
+            for key, strategy in CHECK_STRATEGIES.items():
+                if key in check_upper:
+                    suggestions.append(f"[{strategy['description']}]")
+                    for s in strategy["suggestions"]:
+                        suggestions.append(f"  - {s}")
+                    break
+        return "\n".join(suggestions) if suggestions else "No specific suggestions, please try general optimization"
+
+    def generate_rescue_alphas(self) -> List[Dict]:
+        """Generate rescue alphas from rescue pool."""
+        candidate = self.alpha_db.get_rescue_candidate()
+        if not candidate:
+            return []
+
+        alpha_id = candidate["alpha_id"]
+        expression = candidate["expression"]
+        sharpe = candidate["sharpe"]
+        fitness = candidate["fitness"]
+        turnover = candidate["turnover"]
+        failed_checks = candidate.get("failed_checks", [])
+        modules_used = candidate.get("modules_used", [])
+
+        # Increment attempt count
+        self.alpha_db.increment_rescue_attempt(alpha_id)
+
+        # Determine rescue type based on failed checks
+        has_check_failures = len(failed_checks) > 0
+
+        if has_check_failures:
+            # Case B: Check failures - use targeted suggestions
+            check_suggestions = self._get_check_suggestions(failed_checks)
+            prompt = f"""Factor check failed, targeted fix required.
+
+[Current Status]
+Original code: {expression}
+Sharpe={sharpe:.2f} Fitness={fitness:.2f} Turnover={turnover:.2f}
+Failed checks: {', '.join(failed_checks)}
+
+[Targeted Suggestions]
+{check_suggestions}
+
+[Important Principles]
+- Only modify time-series smoothing parameters, do not change core logic
+- If failure check is TURNOVER → Double outer decay (10→20, 20→40), double inner window (10→20, 20→40, 40→60)
+- If failure check is SELF_CORRELATION → Change neutralization in settings
+- If failure check is DRAWDOWN → Increase decay smoothing
+
+[Output Requirements]
+Output 3 variants, outer shell remains unchanged: ts_decay_linear(zscore(...), 10)
+Neutralization is controlled by settings, do not include group_neutralize in the expression"""
+        else:
+            # Case A: Poor performance - general optimization
+            prompt = f"""Factor performance is close to passing, performance improvement required.
+
+[Current Status]
+Original code: {expression}
+Sharpe={sharpe:.2f} Fitness={fitness:.2f} Turnover={turnover:.2f}
+
+[Optimization Suggestions]
+1. Introduce new data fields (e.g., fundamental, analyst, sentiment data)
+2. Replace core operators: ts_mean↔ts_std_dev, ts_rank↔ts_zscore
+3. Adjust time-series windows: 10→20, 20→40, 40→60
+4. Use non-linear transformations: abs, log, sign, rank
+
+[Output Requirements]
+Output 3 variants, outer shell remains unchanged: ts_decay_linear(zscore(...), 10)
+Neutralization is controlled by settings, do not include group_neutralize in the expression"""
+
+        results = self.llm_client.generate_alphas(DEFAULT_SYSTEM_PROMPT, prompt)
+
+        if results:
+            self.notifier.record_llm_success()
+        else:
+            self.notifier.record_llm_error()
+
+        # Clean expressions, validate quality, and tag as rescue
+        valid_results = []
+        for res in results:
+            expression = res.get('expression', '')
+            if not expression:
+                continue
+
+            # Validate expression quality
+            if not self._validate_expression_quality(expression):
+                logger.warning(f"Skipping low quality rescue expression: {expression[:60]}...")
+                continue
+
+            res['expression'] = clean_expression(expression)
+            res['modules_used'] = modules_used
+            valid_results.append(res)
+
+        logger.info(f"Generated {len(valid_results)} rescue variants for alpha {alpha_id} (attempt {candidate['attempt_count'] + 1})")
+        return valid_results
+
+    def _process_rescue_task(self, task: Dict):
+        """Process a rescue task - generate variants of borderline alpha."""
+        expression = task.get("expression", "")
+        sharpe = task.get("sharpe", 0)
+        fitness = task.get("fitness", 0)
+        turnover = task.get("turnover", 0)
+        failed_checks = task.get("failed_checks", [])
+
+        # Determine rescue type
+        has_check_failures = len(failed_checks) > 0
+
+        if has_check_failures:
+            # Case B: Check failures - use targeted suggestions
+            check_suggestions = self._get_check_suggestions(failed_checks)
+            prompt = f"""Factor check failed, targeted fix required.
+
+[Current Status]
+Original code: {expression}
+Sharpe={sharpe:.2f} Fitness={fitness:.2f} Turnover={turnover:.2f}
+Failed checks: {', '.join(failed_checks)}
+
+[Targeted Suggestions]
+{check_suggestions}
+
+[Important Principles]
+- Only modify time-series smoothing parameters, do not change core logic
+- If failure check is TURNOVER → Double outer decay (10→20, 20→40), double inner window (10→20, 20→40, 40→60)
+- If failure check is SELF_CORRELATION → Change neutralization in settings
+- If failure check is DRAWDOWN → Increase decay smoothing
+
+[Output Requirements]
+Output 3 variants, outer shell remains unchanged: ts_decay_linear(zscore(...), 10)
+Neutralization is controlled by settings, do not include group_neutralize in the expression"""
+        else:
+            # Case A: Poor performance - general optimization
+            prompt = f"""Factor performance is close to passing, performance improvement required.
+
+[Current Status]
+Original code: {expression}
+Sharpe={sharpe:.2f} Fitness={fitness:.2f} Turnover={turnover:.2f}
+
+[Optimization Suggestions]
+1. Introduce new data fields (e.g., fundamental, analyst, sentiment data)
+2. Replace core operators: ts_mean↔ts_std_dev, ts_rank↔ts_zscore
+3. Adjust time-series windows: 10→20, 20→40, 40→60
+4. Use non-linear transformations: abs, log, sign, rank
+
+[Output Requirements]
+Output 3 variants, outer shell remains unchanged: ts_decay_linear(zscore(...), 10)
+Neutralization is controlled by settings, do not include group_neutralize in the expression"""
+
+        variants = self.llm_client.generate_alphas(DEFAULT_SYSTEM_PROMPT, prompt)
+
+        if variants:
+            self.notifier.record_llm_success()
+        else:
+            self.notifier.record_llm_error()
+
+        for variant in variants:
+            expression = variant.get("expression", "")
+            if not expression:
+                continue
+
+            # Validate expression quality
+            if not self._validate_expression_quality(expression):
+                logger.warning(f"Skipping low quality rescue variant: {expression[:60]}...")
+                continue
+
+            variant['modules_used'] = task.get("modules_used", [])
+            self.test_queue.put(variant)
+
+    # ==========================================
+    # Main Execution Loop
+    # ==========================================
+
+    def run(self, max_workers: int = 2):
+        """Main execution loop."""
+        if not self.authenticate():
+            logger.error("Failed to authenticate, exiting")
+            return
+
+        # Load both delay0 and delay1 fields
+        self.fields_delay1 = self.load_fields_from_csvs(FIELDS_DIR_DELAY1)
+        self.fields_delay0 = self.load_fields_from_csvs(FIELDS_DIR_DELAY0)
+        logger.info(f"Loaded delay1 fields: {list(self.fields_delay1.keys())}")
+        logger.info(f"Loaded delay0 fields: {list(self.fields_delay0.keys())}")
+        logger.info(f"Delay0 probability: {self.delay0_prob}")
+
+        # Use delay1 fields by default
+        fields_data = self.fields_delay1
+
+        logger.info("Starting alpha miner...")
+
+        # Start LLM producer thread
+        producer = threading.Thread(
+            target=self.llm_producer_worker,
+            args=(fields_data,),
+            daemon=True
+        )
+        producer.start()
+
+        # Main consumer loop (event-driven, matching IQC approach)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            running_tasks = {}
+
+            while True:
+                try:
+                    # Fill executor slots
+                    while len(running_tasks) < max_workers and not self.test_queue.empty():
+                        factor = self.test_queue.get()
+                        expression = factor.get("expression", "")
+
+                        # Skip if already tested
+                        if not expression or expression in self.tested_expressions:
+                            continue
+
+                        # Skip if pattern is blacklisted (failed too many times)
+                        if self.is_pattern_blacklisted(expression):
+                            logger.debug(f"Skipping blacklisted pattern: {expression[:60]}...")
+                            continue
+
+                        self.tested_expressions.add(expression)
+
+                        mod_str = "+".join(factor.get("modules_used", []))
+                        logger.info(f"Testing [{mod_str}]: {expression[:60]}...")
+                        future = executor.submit(self.simulate_factor, factor)
+                        running_tasks[future] = factor
+
+                    if not running_tasks:
+                        time.sleep(1)
+                        continue
+
+                    # Wait for any task to complete (event-driven, CPU efficient)
+                    done, _ = concurrent.futures.wait(
+                        running_tasks.keys(),
+                        return_when=concurrent.futures.FIRST_COMPLETED
+                    )
+
+                    for future in done:
+                        factor = running_tasks.pop(future)
+                        try:
+                            result = future.result()
+                            if not self.process_result(factor, result):
+                                return  # Fatal error
+                        except Exception as e:
+                            logger.error(f"Task exception: {e}")
+                            self.stats["failed"] += 1
+
+                    # Print stats periodically
+                    if self.stats["tested"] % 15 == 0 and self.stats["tested"] > 0:
+                        rescue_count = self.alpha_db.count_rescue_pool()
+                        logger.info(
+                            f"Stats: tested={self.stats['tested']} "
+                            f"passed={self.stats['passed']} "
+                            f"failed={self.stats['failed']} "
+                            f"rescued={self.stats['rescued']} "
+                            f"flipped={self.stats['flipped']} "
+                            f"rescue_pool={rescue_count} "
+                            f"best_sharpe={self.stats['best_sharpe']:.2f} | "
+                            f"Module weights: {self.module_stats}"
+                        )
+
+                        # Send summary notification every 100 factors (using DB full stats)
+                        if self.stats["tested"] % 100 == 0:
+                            db_stats = self.alp
