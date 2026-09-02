@@ -71,7 +71,7 @@ class LLMClient:
                 base_url=base_url,
                 timeout=120.0
             )
-            self.model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+            self.model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
             logger.info("Gemini API client initialized")
         except ImportError:
             raise ImportError("openai package required for Gemini API: pip install openai")
