@@ -53,12 +53,23 @@ class WorldQuantSession:
             # Send initial authentication POST request
             response = self.session.post(auth_endpoint)
 
-            # Case 1: Handle Persona / Biometrics 2FA Challenge (HTTP 401 with WWW-Authenticate header)
+            # Case 1: Handle Persona / Biometrics 2FA Challenge (HTTP 401 with WWW-Authenticate header or inquiry body)
             if response.status_code == requests.codes.unauthorized:
                 www_auth_header = response.headers.get("WWW-Authenticate", "")
-
-                if www_auth_header.lower() == "persona":
+                
+                # Check flexibly for persona challenge or inquiry payload
+                if "persona" in www_auth_header.lower() or "inquiry" in response.text:
                     relative_location = response.headers.get("Location", "")
+                    
+                    # Fallback if Location header is missing but inquiry exists in JSON response
+                    if not relative_location and "inquiry" in response.text:
+                        try:
+                            inquiry_code = response.json().get("inquiry")
+                            if inquiry_code:
+                                relative_location = f"/authentication/persona?inquiry={inquiry_code}"
+                        except Exception:
+                            pass
+
                     persona_url = urljoin(response.url, relative_location)
 
                     print("\n" + "=" * 70)
@@ -77,22 +88,6 @@ class WorldQuantSession:
                     raise Exception(
                         f"Authentication failed (HTTP 401): Invalid username or password. Details: {response.text}"
                     )
-
-            # Case 2: Check for other non-successful status codes
-            if response.status_code not in (
-                requests.codes.ok,
-                requests.codes.created,
-                requests.codes.no_content,
-            ):
-                raise Exception(
-                    f"Authentication failed with status code {response.status_code}: {response.text}"
-                )
-
-            logger.info("Successfully authenticated with WorldQuant Brain!")
-
-        except Exception as e:
-            logger.error(f"Authentication error: {e}")
-            raise e
 
     def get(self, endpoint: str, **kwargs) -> requests.Response:
         """
