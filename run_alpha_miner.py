@@ -329,7 +329,7 @@ class AlphaMiner:
 
         return True
 
-    def _authenticate(self) -> None:
+    def authenticate(self) -> None:
         """
         Authenticates against the WorldQuant Brain API endpoint.
         Handles both standard Basic Auth and Persona 2FA / Biometric verification flow.
