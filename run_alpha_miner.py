@@ -330,42 +330,64 @@ class AlphaMiner:
         return True
 
     def authenticate(self) -> bool:
-        """Authenticate with WorldQuant Brain API."""
-        import requests
-        from requests.auth import HTTPBasicAuth
-        import time
+            """Authenticate with WorldQuant Brain API, supporting Persona 2FA/Biometric flow."""
+            import requests
+            from requests.auth import HTTPBasicAuth
+            import time
+            from urllib.parse import urljoin
 
-        username, password = load_credentials()
+            username, password = load_credentials()
 
-        logger.info("Authenticating with WorldQuant Brain...")
-        self.session = requests.Session()
-        self.session.trust_env = False
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json"
-        })
-        self.session.auth = HTTPBasicAuth(username, password)
+            logger.info("Authenticating with WorldQuant Brain...")
+            self.session = requests.Session()
+            self.session.trust_env = False
+            self.session.headers.update({
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "application/json"
+            })
+            self.session.auth = HTTPBasicAuth(username, password)
 
-        try:
-            resp = self.session.post(
-                f"{BASE_URL}/authentication",
-                verify=False,
-                timeout=15
-            )
-            if resp.status_code == 201:
-                logger.info("Authentication successful")
-                # 设置token过期时间（假设2小时，实际可能更短）
-                self._token_expires_at = time.time() + 7200  # 2小时
-                self._auth_retry_count = 0  # 重置重试次数
-                return True
-            else:
-                logger.error(f"Authentication failed: {resp.text}")
+            try:
+                resp = self.session.post(
+                    f"{BASE_URL}/authentication",
+                    verify=False,
+                    timeout=15
+                )
+
+                # Handle Persona / Biometrics 2FA Challenge
+                if resp.status_code == 401 and "inquiry" in resp.text:
+                    try:
+                        inquiry_code = resp.json().get("inquiry")
+                        persona_url = f"{BASE_URL}/authentication/persona?inquiry={inquiry_code}"
+
+                        print("\n" + "=" * 70)
+                        print("⚠️  PERSONA BIOMETRIC / 2FA AUTHENTICATION REQUIRED")
+                        print("=" * 70)
+                        print("Execution PAUSED. Please open the following URL in your browser to complete verification:\n")
+                        print(f"👉 {persona_url}\n")
+                        print("After the browser shows 'Success', return here and press ENTER to continue.")
+                        print("=" * 70)
+
+                        input("Press ENTER here after completing authentication in your browser...")
+
+                        # Send follow-up POST request after browser verification is complete
+                        resp = self.session.post(persona_url, verify=False, timeout=15)
+                    except Exception as ex:
+                        logger.error(f"Failed to handle Persona challenge: {ex}")
+
+                if resp.status_code in [201, 200, 204]:
+                    logger.info("Authentication successful")
+                    self._token_expires_at = time.time() + 7200  # 2 hours
+                    self._auth_retry_count = 0  # Reset retry count
+                    return True
+                else:
+                    logger.error(f"Authentication failed: {resp.text}")
+                    self._auth_retry_count += 1
+                    return False
+            except Exception as e:
+                logger.error(f"Authentication error: {e}")
                 self._auth_retry_count += 1
                 return False
-        except Exception as e:
-            logger.error(f"Authentication error: {e}")
-            self._auth_retry_count += 1
-            return False
 
     def _is_token_expired(self) -> bool:
         """Check if token is about to expire (5 minutes in advance)"""
