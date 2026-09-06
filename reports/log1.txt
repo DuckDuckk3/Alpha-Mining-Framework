@@ -1,0 +1,227 @@
+7 - __main__ - INFO - Loaded 1070 fields from ml_factor_proj.csv
+2026-09-06 20:41:55,283 - __main__ - INFO - Loaded 1650 fields from mmp_nlp_sentiment.csv
+2026-09-06 20:41:55,295 - __main__ - INFO - Loaded 1224 fields from model10.csv
+2026-09-06 20:41:55,300 - __main__ - INFO - Loaded 14 fields from model106.csv
+2026-09-06 20:41:55,310 - __main__ - INFO - Loaded 544 fields from model109.csv
+2026-09-06 20:41:55,316 - __main__ - INFO - Loaded 8 fields from model110.csv
+2026-09-06 20:41:55,326 - __main__ - INFO - Loaded 14 fields from model127.csv
+2026-09-06 20:41:55,338 - __main__ - INFO - Loaded 273 fields from model135.csv
+2026-09-06 20:41:55,345 - __main__ - INFO - Loaded 120 fields from model138.csv
+2026-09-06 20:41:55,354 - __main__ - INFO - Loaded 3 fields from model140.csv
+2026-09-06 20:41:55,359 - __main__ - INFO - Loaded 2 fields from model144.csv
+2026-09-06 20:41:55,364 - __main__ - INFO - Loaded 24 fields from model16.csv
+2026-09-06 20:41:55,374 - __main__ - INFO - Loaded 441 fields from model165.csv
+2026-09-06 20:41:55,379 - __main__ - INFO - Loaded 43 fields from model17.csv
+2026-09-06 20:41:55,385 - __main__ - INFO - Loaded 208 fields from model194.csv
+2026-09-06 20:41:55,391 - __main__ - INFO - Loaded 2 fields from model21.csv
+2026-09-06 20:41:55,399 - __main__ - INFO - Loaded 488 fields from model211.csv
+2026-09-06 20:41:55,411 - __main__ - INFO - Loaded 1282 fields from model219.csv
+2026-09-06 20:41:55,416 - __main__ - INFO - Loaded 2 fields from model22.csv
+2026-09-06 20:41:55,422 - __main__ - INFO - Loaded 173 fields from model227.csv
+2026-09-06 20:41:55,428 - __main__ - INFO - Loaded 157 fields from model23.csv
+2026-09-06 20:41:55,443 - __main__ - INFO - Loaded 1168 fields from model230.csv
+2026-09-06 20:41:55,448 - __main__ - INFO - Loaded 22 fields from model238.csv
+2026-09-06 20:41:55,453 - __main__ - INFO - Loaded 30 fields from model239.csv
+2026-09-06 20:41:55,459 - __main__ - INFO - Loaded 4 fields from model243.csv
+2026-09-06 20:41:55,463 - __main__ - INFO - Loaded 2 fields from model253.csv
+2026-09-06 20:41:55,468 - __main__ - INFO - Loaded 10 fields from model257.csv
+2026-09-06 20:41:55,478 - __main__ - INFO - Loaded 839 fields from model26.csv
+2026-09-06 20:41:55,493 - __main__ - INFO - Loaded 1208 fields from model262.csv
+2026-09-06 20:41:55,512 - __main__ - INFO - Loaded 2083 fields from model264.csv
+2026-09-06 20:41:55,518 - __main__ - INFO - Loaded 104 fields from model28.csv
+2026-09-06 20:41:55,524 - __main__ - INFO - Loaded 29 fields from model29.csv
+2026-09-06 20:41:55,529 - __main__ - INFO - Loaded 48 fields from model30.csv
+2026-09-06 20:41:55,533 - __main__ - INFO - Loaded 15 fields from model307.csv
+2026-09-06 20:41:55,540 - __main__ - INFO - Loaded 235 fields from model31.csv
+2026-09-06 20:41:55,545 - __main__ - INFO - Loaded 13 fields from model313.csv
+2026-09-06 20:41:55,550 - __main__ - INFO - Loaded 310 fields from model354.csv
+2026-09-06 20:41:55,556 - __main__ - INFO - Loaded 32 fields from model36.csv
+2026-09-06 20:41:55,561 - __main__ - INFO - Loaded 95 fields from model37.csv
+2026-09-06 20:41:55,566 - __main__ - INFO - Loaded 40 fields from model39.csv
+2026-09-06 20:41:55,571 - __main__ - INFO - Loaded 1 fields from model41.csv
+2026-09-06 20:41:55,577 - __main__ - INFO - Loaded 16 fields from model51.csv
+2026-09-06 20:41:55,582 - __main__ - INFO - Loaded 138 fields from model53.csv
+2026-09-06 20:41:55,588 - __main__ - INFO - Loaded 22 fields from model57.csv
+2026-09-06 20:41:55,594 - __main__ - INFO - Loaded 12 fields from model68.csv
+2026-09-06 20:41:55,620 - __main__ - INFO - Loaded 3256 fields from model77.csv
+2026-09-06 20:41:55,629 - __main__ - INFO - Loaded 669 fields from multifactor_return_pred.csv
+2026-09-06 20:41:55,641 - __main__ - INFO - Loaded 832 fields from multi_horizon_alpha.csv
+2026-09-06 20:41:55,648 - __main__ - INFO - Loaded 62 fields from multi_source_model.csv
+2026-09-06 20:41:55,660 - __main__ - INFO - Loaded 875 fields from news12.csv
+2026-09-06 20:41:55,666 - __main__ - INFO - Loaded 45 fields from news17.csv
+2026-09-06 20:41:55,673 - __main__ - INFO - Loaded 121 fields from news18.csv
+2026-09-06 20:41:55,679 - __main__ - INFO - Loaded 260 fields from news21.csv
+2026-09-06 20:41:55,684 - __main__ - INFO - Loaded 4 fields from news22.csv
+2026-09-06 20:41:55,689 - __main__ - INFO - Loaded 129 fields from news23.csv
+2026-09-06 20:41:55,695 - __main__ - INFO - Loaded 12 fields from news29.csv
+2026-09-06 20:41:55,699 - __main__ - INFO - Loaded 19 fields from news3.csv
+2026-09-06 20:41:55,705 - __main__ - INFO - Loaded 60 fields from news31.csv
+2026-09-06 20:41:55,710 - __main__ - INFO - Loaded 29 fields from news36.csv
+2026-09-06 20:41:55,715 - __main__ - INFO - Loaded 63 fields from news38.csv
+2026-09-06 20:41:55,721 - __main__ - INFO - Loaded 91 fields from news46.csv
+2026-09-06 20:41:55,727 - __main__ - INFO - Loaded 22 fields from news48.csv
+2026-09-06 20:41:55,733 - __main__ - INFO - Loaded 145 fields from news5.csv
+2026-09-06 20:41:55,739 - __main__ - INFO - Loaded 83 fields from news50.csv
+2026-09-06 20:41:55,745 - __main__ - INFO - Loaded 42 fields from news52.csv
+2026-09-06 20:41:55,750 - __main__ - INFO - Loaded 71 fields from news59.csv
+2026-09-06 20:41:55,756 - __main__ - INFO - Loaded 162 fields from news7.csv
+2026-09-06 20:41:55,761 - __main__ - INFO - Loaded 22 fields from news73.csv
+2026-09-06 20:41:55,766 - __main__ - INFO - Loaded 6 fields from news76.csv
+2026-09-06 20:41:55,770 - __main__ - INFO - Loaded 23 fields from news81.csv
+2026-09-06 20:41:55,777 - __main__ - INFO - Loaded 23 fields from news84.csv
+2026-09-06 20:41:55,783 - __main__ - INFO - Loaded 23 fields from news85.csv
+2026-09-06 20:41:55,791 - __main__ - INFO - Loaded 214 fields from news87.csv
+2026-09-06 20:41:55,796 - __main__ - INFO - Loaded 54 fields from news94.csv
+2026-09-06 20:41:55,801 - __main__ - INFO - Loaded 105 fields from news97.csv
+2026-09-06 20:41:55,808 - __main__ - INFO - Loaded 88 fields from news_sentiment_dl.csv
+2026-09-06 20:41:55,813 - __main__ - INFO - Loaded 23 fields from news_sentiment_nlp.csv
+2026-09-06 20:41:55,821 - __main__ - INFO - Loaded 23 fields from news_sentiment_transfer.csv
+2026-09-06 20:41:55,829 - __main__ - INFO - Loaded 315 fields from news_transformer_scores.csv
+2026-09-06 20:41:55,836 - __main__ - INFO - Loaded 84 fields from nlp_news_scores.csv
+2026-09-06 20:41:55,843 - __main__ - INFO - Loaded 20 fields from option3.csv
+2026-09-06 20:41:55,850 - __main__ - INFO - Loaded 208 fields from option40.csv
+2026-09-06 20:41:55,857 - __main__ - INFO - Loaded 133 fields from option6.csv
+2026-09-06 20:41:55,863 - __main__ - INFO - Loaded 64 fields from option8.csv
+2026-09-06 20:41:55,868 - __main__ - INFO - Loaded 74 fields from option9.csv
+2026-09-06 20:41:55,875 - __main__ - INFO - Loaded 143 fields from options_composite.csv
+2026-09-06 20:41:55,883 - __main__ - INFO - Loaded 439 fields from option_chart_model.csv
+2026-09-06 20:41:55,892 - __main__ - INFO - Loaded 501 fields from option_horizon_decomp.csv
+2026-09-06 20:41:55,898 - __main__ - INFO - Loaded 198 fields from order_book_imbalance.csv
+2026-09-06 20:41:55,905 - __main__ - INFO - Loaded 120 fields from order_flow_imb.csv
+2026-09-06 20:41:55,910 - __main__ - INFO - Loaded 12 fields from other128.csv
+2026-09-06 20:41:55,916 - __main__ - INFO - Loaded 126 fields from other143.csv
+2026-09-06 20:41:55,922 - __main__ - INFO - Loaded 20 fields from other176.csv
+2026-09-06 20:41:55,927 - __main__ - INFO - Loaded 2 fields from other238.csv
+2026-09-06 20:41:55,932 - __main__ - INFO - Loaded 10 fields from other250.csv
+2026-09-06 20:41:55,938 - __main__ - INFO - Loaded 47 fields from other296.csv
+2026-09-06 20:41:55,944 - __main__ - INFO - Loaded 32 fields from other315.csv
+2026-09-06 20:41:55,948 - __main__ - INFO - Loaded 3 fields from other327.csv
+2026-09-06 20:41:55,954 - __main__ - INFO - Loaded 10 fields from other335.csv
+2026-09-06 20:41:55,959 - __main__ - INFO - Loaded 5 fields from other351.csv
+2026-09-06 20:41:55,964 - __main__ - INFO - Loaded 10 fields from other359.csv
+2026-09-06 20:41:55,969 - __main__ - INFO - Loaded 66 fields from other384.csv
+2026-09-06 20:41:55,977 - __main__ - INFO - Loaded 371 fields from other416.csv
+2026-09-06 20:41:55,982 - __main__ - INFO - Loaded 17 fields from other423.csv
+2026-09-06 20:41:55,987 - __main__ - INFO - Loaded 3 fields from other424.csv
+2026-09-06 20:41:55,999 - __main__ - INFO - Loaded 1139 fields from other432.csv
+2026-09-06 20:41:56,004 - __main__ - INFO - Loaded 3 fields from other436.csv
+2026-09-06 20:41:56,013 - __main__ - INFO - Loaded 46 fields from other452.csv
+2026-09-06 20:41:56,029 - __main__ - INFO - Loaded 1425 fields from other455.csv
+2026-09-06 20:41:56,049 - __main__ - INFO - Loaded 2038 fields from other460.csv
+2026-09-06 20:41:56,059 - __main__ - INFO - Loaded 565 fields from other466.csv
+2026-09-06 20:41:56,065 - __main__ - INFO - Loaded 10 fields from other510.csv
+2026-09-06 20:41:56,072 - __main__ - INFO - Loaded 4 fields from other545.csv
+2026-09-06 20:41:56,077 - __main__ - INFO - Loaded 13 fields from other546.csv
+2026-09-06 20:41:56,083 - __main__ - INFO - Loaded 33 fields from other551.csv
+2026-09-06 20:41:56,089 - __main__ - INFO - Loaded 74 fields from other553.csv
+2026-09-06 20:41:56,094 - __main__ - INFO - Loaded 51 fields from other566.csv
+2026-09-06 20:41:56,100 - __main__ - INFO - Loaded 223 fields from other567.csv
+2026-09-06 20:41:56,106 - __main__ - INFO - Loaded 30 fields from other571.csv
+2026-09-06 20:41:56,113 - __main__ - INFO - Loaded 403 fields from other580.csv
+2026-09-06 20:41:56,121 - __main__ - INFO - Loaded 420 fields from other596.csv
+2026-09-06 20:41:56,126 - __main__ - INFO - Loaded 6 fields from other623.csv
+2026-09-06 20:41:56,131 - __main__ - INFO - Loaded 9 fields from other635.csv
+2026-09-06 20:41:56,137 - __main__ - INFO - Loaded 72 fields from other685.csv
+2026-09-06 20:41:56,146 - __main__ - INFO - Loaded 498 fields from other696.csv
+2026-09-06 20:41:56,151 - __main__ - INFO - Loaded 19 fields from other699.csv
+2026-09-06 20:41:56,160 - __main__ - INFO - Loaded 504 fields from pattern_scores.csv
+2026-09-06 20:41:56,172 - __main__ - INFO - Loaded 1196 fields from predictive_starmine.csv
+2026-09-06 20:41:56,177 - __main__ - INFO - Loaded 28 fields from price_signal_dl.csv
+2026-09-06 20:41:56,182 - __main__ - INFO - Loaded 24 fields from pv1.csv
+2026-09-06 20:41:56,188 - __main__ - INFO - Loaded 79 fields from pv103.csv
+2026-09-06 20:41:56,193 - __main__ - INFO - Loaded 46 fields from pv104.csv
+2026-09-06 20:41:56,198 - __main__ - INFO - Loaded 6 fields from pv106.csv
+2026-09-06 20:41:56,202 - __main__ - INFO - Loaded 34 fields from pv109.csv
+2026-09-06 20:41:56,207 - __main__ - INFO - Loaded 12 fields from pv115.csv
+2026-09-06 20:41:56,214 - __main__ - INFO - Loaded 165 fields from pv13.csv
+2026-09-06 20:41:56,220 - __main__ - INFO - Loaded 6 fields from pv141.csv
+2026-09-06 20:41:56,225 - __main__ - INFO - Loaded 6 fields from pv149.csv
+2026-09-06 20:41:56,231 - __main__ - INFO - Loaded 51 fields from pv173.csv
+2026-09-06 20:41:56,247 - __main__ - INFO - Loaded 1552 fields from pv20.csv
+2026-09-06 20:41:56,255 - __main__ - INFO - Loaded 199 fields from pv29.csv
+2026-09-06 20:41:56,262 - __main__ - INFO - Loaded 13 fields from pv3.csv
+2026-09-06 20:41:56,275 - __main__ - INFO - Loaded 833 fields from pv30.csv
+2026-09-06 20:41:56,280 - __main__ - INFO - Loaded 2 fields from pv47.csv
+2026-09-06 20:41:56,288 - __main__ - INFO - Loaded 147 fields from pv48.csv
+2026-09-06 20:41:56,294 - __main__ - INFO - Loaded 176 fields from pv52.csv
+2026-09-06 20:41:56,299 - __main__ - INFO - Loaded 5 fields from pv53.csv
+2026-09-06 20:41:56,306 - __main__ - INFO - Loaded 16 fields from pv63.csv
+2026-09-06 20:41:56,313 - __main__ - INFO - Loaded 245 fields from pv64.csv
+2026-09-06 20:41:56,358 - __main__ - INFO - Loaded 6666 fields from pv87.csv
+2026-09-06 20:41:56,367 - __main__ - INFO - Loaded 352 fields from pv98.csv
+2026-09-06 20:41:56,374 - __main__ - INFO - Loaded 56 fields from pv_tech_indicators.csv
+2026-09-06 20:41:56,380 - __main__ - INFO - Loaded 224 fields from quant_factor_lib.csv
+2026-09-06 20:41:56,386 - __main__ - INFO - Loaded 16 fields from risk59.csv
+2026-09-06 20:41:56,391 - __main__ - INFO - Loaded 5 fields from risk60.csv
+2026-09-06 20:41:56,401 - __main__ - INFO - Loaded 636 fields from risk62.csv
+2026-09-06 20:41:56,406 - __main__ - INFO - Loaded 6 fields from risk65.csv
+2026-09-06 20:41:56,412 - __main__ - INFO - Loaded 158 fields from risk70.csv
+2026-09-06 20:41:56,416 - __main__ - INFO - Loaded 3 fields from risk72.csv
+2026-09-06 20:41:56,423 - __main__ - INFO - Loaded 234 fields from risk82.csv
+2026-09-06 20:41:56,428 - __main__ - INFO - Loaded 11 fields from search_interest.csv
+2026-09-06 20:41:56,433 - __main__ - INFO - Loaded 19 fields from sentiment1.csv
+2026-09-06 20:41:56,440 - __main__ - INFO - Loaded 258 fields from sentiment21.csv
+2026-09-06 20:41:56,446 - __main__ - INFO - Loaded 210 fields from sentiment22.csv
+2026-09-06 20:41:56,453 - __main__ - INFO - Loaded 210 fields from sentiment23.csv
+2026-09-06 20:41:56,459 - __main__ - INFO - Loaded 36 fields from sentiment26.csv
+2026-09-06 20:41:56,464 - __main__ - INFO - Loaded 17 fields from sentiment27.csv
+2026-09-06 20:41:56,469 - __main__ - INFO - Loaded 45 fields from sentiment7.csv
+2026-09-06 20:41:56,474 - __main__ - INFO - Loaded 1 fields from shortinterest24.csv
+2026-09-06 20:41:56,479 - __main__ - INFO - Loaded 32 fields from shortinterest29.csv
+2026-09-06 20:41:56,484 - __main__ - INFO - Loaded 31 fields from shortinterest3.csv
+2026-09-06 20:41:56,490 - __main__ - INFO - Loaded 32 fields from shortinterest43.csv
+2026-09-06 20:41:56,495 - __main__ - INFO - Loaded 11 fields from shortinterest6.csv
+2026-09-06 20:41:56,499 - __main__ - INFO - Loaded 16 fields from shortinterest7.csv
+2026-09-06 20:41:56,505 - __main__ - INFO - Loaded 10 fields from short_interest_pred.csv
+2026-09-06 20:41:56,510 - __main__ - INFO - Loaded 18 fields from socialmedia12.csv
+2026-09-06 20:41:56,514 - __main__ - INFO - Loaded 13 fields from socialmedia5.csv
+2026-09-06 20:41:56,518 - __main__ - INFO - Loaded 4 fields from socialmedia8.csv
+2026-09-06 20:41:56,523 - __main__ - INFO - Loaded 3 fields from social_sent_score.csv
+2026-09-06 20:41:56,528 - __main__ - INFO - Loaded 4 fields from stock_cluster_dl.csv
+2026-09-06 20:41:56,532 - __main__ - INFO - Loaded 12 fields from stock_search_trends.csv
+2026-09-06 20:41:56,538 - __main__ - INFO - Loaded 122 fields from sustainable_profit.csv
+2026-09-06 20:41:56,556 - __main__ - INFO - Loaded 1830 fields from techindi_model.csv
+2026-09-06 20:41:56,571 - __main__ - INFO - Loaded 384 fields from tech_chart_model.csv
+2026-09-06 20:41:56,581 - __main__ - INFO - Loaded 95 fields from twitter_sentiment_l2.csv
+2026-09-06 20:41:56,590 - __main__ - INFO - Loaded 6 fields from univ1.csv
+2026-09-06 20:41:56,598 - __main__ - INFO - Loaded 1 fields from univ2.csv
+2026-09-06 20:41:56,605 - __main__ - INFO - Loaded 8 fields from us_equity_news.csv
+2026-09-06 20:41:56,610 - __main__ - INFO - Loaded 4 fields from us_short_sale.csv
+2026-09-06 20:41:56,616 - __main__ - INFO - Loaded 105 fields from web_traffic_engage.csv
+2026-09-06 20:41:56,622 - __main__ - INFO - Loaded 26 fields from workforce_flow_skills.csv
+2026-09-06 20:41:56,622 - __main__ - INFO - No target CSV files found, using default fields
+2026-09-06 20:41:56,623 - __main__ - INFO - Loaded delay1 fields: ['ACQUISITION_MODEL', 'AI_EQUITY_ALPHA', 'AI_FACTOR_TRANSFER', 'AI_NEWS_SCORES', 'ANALYST10', 'ANALYST11', 'ANALYST14', 'ANALYST15', 'ANALYST16', 'ANALYST35', 'ANALYST4', 'ANALYST44', 'ANALYST45', 'ANALYST48', 'ANALYST49', 'ANALYST57', 'ANALYST69', 'ANALYST7', 'ANALYST8', 'ANALYST82', 'ANALYST83', 'ANALYST94', 'ANALYST_BASE_REF', 'ANALYST_CHART_CNN', 'ANALYST_CONSENSUS', 'ANALYST_EARNINGS_IBES', 'ANALYST_FACTOR_SIGNALS', 'ANALYST_REVISION_HORIZONS', 'BEHAVIORAL_SIGNALS', 'BIASFREE_ANALYST', 'BOARD_GOV_STATS', 'BOARD_NETWORK', 'CHART_CNN_ALPHA', 'CHART_MODEL_ALPHA', 'CHART_RETURN_MODEL', 'CONTINUATION_SCORE', 'CREATOR_SIGNAL_PERF', 'CRE_EXPOSURE_MODEL', 'DL_RISKFREE_RETURNS', 'DL_VOLUME_PRED', 'EARNINGS27', 'EARNINGS4', 'EARNINGS6', 'EARNINGS7', 'EARNINGSCALL_EMBED', 'EARNINGSCALL_SENTIMENT', 'EARNINGS_CHART_DL', 'EARNINGS_RISK', 'EARNINGS_SENT_MATRIX', 'EQUITY_FORUM_DATA', 'EQUITY_KPI_FORECAST', 'EVENT_RELATION', 'EVENT_RETURN_MODEL', 'EVENT_SENTIMENT_SIGNALS', 'EVENT_STOCK_MODEL', 'EXPECTED_MOVE', 'FILING_SENTIMENT', 'FINNEWS_NLP_SCORES', 'FORUM_SENTIMENT', 'FORWARD_BETA_RISK', 'FUNDAMENTAL1', 'FUNDAMENTAL110', 'FUNDAMENTAL13', 'FUNDAMENTAL14', 'FUNDAMENTAL17', 'FUNDAMENTAL2', 'FUNDAMENTAL21', 'FUNDAMENTAL22', 'FUNDAMENTAL23', 'FUNDAMENTAL25', 'FUNDAMENTAL28', 'FUNDAMENTAL3', 'FUNDAMENTAL31', 'FUNDAMENTAL35', 'FUNDAMENTAL6', 'FUNDAMENTAL65', 'FUNDAMENTAL67', 'FUNDAMENTAL69', 'FUNDAMENTAL7', 'FUNDAMENTAL72', 'FUNDAMENTAL91', 'FUNDAMENTAL93', 'FUND_HOLDINGS_PANEL', 'GLOBAL_SEASONAL_MODEL', 'HIRING_TRENDS', 'IMBALANCE5', 'INSIDERS1', 'INSIDERS3', 'INSIDERS4', 'INSIDER_AGG_MATRIX', 'INSIDER_FEATS', 'INSIDER_MATRIX', 'INSIDER_TRX_MATRIX', 'INSTITUTIONS18', 'INSTITUTIONS20', 'INSTITUTIONS6', 'INTRADAY_PV_FEATS', 'MACRO10', 'MACRO17', 'MACRO27', 'MACRO38', 'MACRO4', 'MACRO63', 'MFM_MODEL_OUTPUT', 'ML_FACTOR_PROJ', 'MMP_NLP_SENTIMENT', 'MODEL10', 'MODEL106', 'MODEL109', 'MODEL110', 'MODEL127', 'MODEL135', 'MODEL138', 'MODEL140', 'MODEL144', 'MODEL16', 'MODEL165', 'MODEL17', 'MODEL194', 'MODEL21', 'MODEL211', 'MODEL219', 'MODEL22', 'MODEL227', 'MODEL23', 'MODEL230', 'MODEL238', 'MODEL239', 'MODEL243', 'MODEL253', 'MODEL257', 'MODEL26', 'MODEL262', 'MODEL264', 'MODEL28', 'MODEL29', 'MODEL30', 'MODEL307', 'MODEL31', 'MODEL313', 'MODEL354', 'MODEL36', 'MODEL37', 'MODEL39', 'MODEL41', 'MODEL51', 'MODEL53', 'MODEL57', 'MODEL68', 'MODEL77', 'MULTIFACTOR_RETURN_PRED', 'MULTI_HORIZON_ALPHA', 'MULTI_SOURCE_MODEL', 'NEWS12', 'NEWS17', 'NEWS18', 'NEWS21', 'NEWS22', 'NEWS23', 'NEWS29', 'NEWS3', 'NEWS31', 'NEWS36', 'NEWS38', 'NEWS46', 'NEWS48', 'NEWS5', 'NEWS50', 'NEWS52', 'NEWS59', 'NEWS7', 'NEWS73', 'NEWS76', 'NEWS81', 'NEWS84', 'NEWS85', 'NEWS87', 'NEWS94', 'NEWS97', 'NEWS_SENTIMENT_DL', 'NEWS_SENTIMENT_NLP', 'NEWS_SENTIMENT_TRANSFER', 'NEWS_TRANSFORMER_SCORES', 'NLP_NEWS_SCORES', 'OPTION3', 'OPTION40', 'OPTION6', 'OPTION8', 'OPTION9', 'OPTIONS_COMPOSITE', 'OPTION_CHART_MODEL', 'OPTION_HORIZON_DECOMP', 'ORDER_BOOK_IMBALANCE', 'ORDER_FLOW_IMB', 'OTHER128', 'OTHER143', 'OTHER176', 'OTHER238', 'OTHER250', 'OTHER296', 'OTHER315', 'OTHER327', 'OTHER335', 'OTHER351', 'OTHER359', 'OTHER384', 'OTHER416', 'OTHER423', 'OTHER424', 'OTHER432', 'OTHER436', 'OTHER452', 'OTHER455', 'OTHER460', 'OTHER466', 'OTHER510', 'OTHER545', 'OTHER546', 'OTHER551', 'OTHER553', 'OTHER566', 'OTHER567', 'OTHER571', 'OTHER580', 'OTHER596', 'OTHER623', 'OTHER635', 'OTHER685', 'OTHER696', 'OTHER699', 'PATTERN_SCORES', 'PREDICTIVE_STARMINE', 'PRICE_SIGNAL_DL', 'PV1', 'PV103', 'PV104', 'PV106', 'PV109', 'PV115', 'PV13', 'PV141', 'PV149', 'PV173', 'PV20', 'PV29', 'PV3', 'PV30', 'PV47', 'PV48', 'PV52', 'PV53', 'PV63', 'PV64', 'PV87', 'PV98', 'PV_TECH_INDICATORS', 'QUANT_FACTOR_LIB', 'RISK59', 'RISK60', 'RISK62', 'RISK65', 'RISK70', 'RISK72', 'RISK82', 'SEARCH_INTEREST', 'SENTIMENT1', 'SENTIMENT21', 'SENTIMENT22', 'SENTIMENT23', 'SENTIMENT26', 'SENTIMENT27', 'SENTIMENT7', 'SHORTINTEREST24', 'SHORTINTEREST29', 'SHORTINTEREST3', 'SHORTINTEREST43', 'SHORTINTEREST6', 'SHORTINTEREST7', 'SHORT_INTEREST_PRED', 'SOCIALMEDIA12', 'SOCIALMEDIA5', 'SOCIALMEDIA8', 'SOCIAL_SENT_SCORE', 'STOCK_CLUSTER_DL', 'STOCK_SEARCH_TRENDS', 'SUSTAINABLE_PROFIT', 'TECHINDI_MODEL', 'TECH_CHART_MODEL', 'TWITTER_SENTIMENT_L2', 'UNIV1', 'UNIV2', 'US_EQUITY_NEWS', 'US_SHORT_SALE', 'WEB_TRAFFIC_ENGAGE', 'WORKFORCE_FLOW_SKILLS']
+2026-09-06 20:41:56,623 - __main__ - INFO - Loaded delay0 fields: ['PV13', 'FUNDAMENTAL6']
+2026-09-06 20:41:56,623 - __main__ - INFO - Delay0 probability: 0.5
+2026-09-06 20:41:56,623 - __main__ - INFO - Starting alpha miner...
+2026-09-06 20:41:56,624 - __main__ - INFO - LLM producer thread started
+2026-09-06 20:41:56,624 - __main__ - INFO - Selected delay=0 fields
+2026-09-06 20:41:56,625 - __main__ - INFO - Generating alphas for modules: FUNDAMENTAL6+PV13
+2026-09-06 20:42:32,634 - __main__ - INFO - Testing [FUNDAMENTAL6+PV13]: ts_decay_linear(zscore((ts_mean(returns, 10) / (ts_std_dev(r...
+2026-09-06 20:42:32,636 - __main__ - INFO - Testing [FUNDAMENTAL6+PV13]: ts_decay_linear(zscore(((vwap - close) / (close + 0.000001))...
+2026-09-06 20:42:33,005 - __main__ - INFO - Selected delay=1 fields
+2026-09-06 20:42:33,057 - __main__ - INFO - Generating alphas for modules: SOCIALMEDIA12
+2026-09-06 20:42:47,854 - __main__ - INFO - Selected delay=0 fields
+2026-09-06 20:42:47,855 - __main__ - INFO - Generating alphas for modules: PV13
+2026-09-06 20:43:06,101 - __main__ - ERROR - Failed: ts_decay_linear(zscore((ts_mean(returns, 10) / (ts_std_dev(r... -> Attempted to use unknown variable "roe". <linkToCommonErrorMessages>Learn more</linkToCommonErrorMessages>
+2026-09-06 20:43:06,101 - __main__ - INFO - Testing [FUNDAMENTAL6+PV13]: ts_decay_linear(zscore(-ts_corr(volume, high - low, 20) * ts...
+2026-09-06 20:43:06,266 - __main__ - INFO - Selected delay=1 fields
+2026-09-06 20:43:06,270 - __main__ - INFO - Generating alphas for modules: MODEL31
+2026-09-06 20:43:06,824 - __main__ - ERROR - Failed: ts_decay_linear(zscore(((vwap - close) / (close + 0.000001))... -> Attempted to use unknown variable "pb_ratio". <linkToCommonErrorMessages>Learn more</linkToCommonErrorMessages>
+2026-09-06 20:43:06,824 - __main__ - INFO - Testing [FUNDAMENTAL6+PV13]: ts_decay_linear(zscore((-ts_delta(close, 5) / (close + 0.000...
+2026-09-06 20:43:41,150 - __main__ - ERROR - Failed: ts_decay_linear(zscore(-ts_corr(volume, high - low, 20) * ts... -> Attempted to use unknown variable "roe". <linkToCommonErrorMessages>Learn more</linkToCommonErrorMessages>
+2026-09-06 20:43:41,150 - __main__ - INFO - Testing [FUNDAMENTAL6+PV13]: ts_decay_linear(zscore(((close - open) / (open + 0.000001) -...
+2026-09-06 20:43:41,894 - __main__ - ERROR - Failed: ts_decay_linear(zscore((-ts_delta(close, 5) / (close + 0.000... -> Attempted to use unknown variable "roe". <linkToCommonErrorMessages>Learn more</linkToCommonErrorMessages>
+2026-09-06 20:43:41,894 - __main__ - INFO - Testing [SOCIALMEDIA12]: ts_decay_linear(zscore(ts_delta(scl12_buzz, 5) / (ts_mean(sn...
+2026-09-06 20:43:41,989 - __main__ - INFO - Selected delay=0 fields
+2026-09-06 20:43:41,990 - __main__ - INFO - Generating alphas for modules: FUNDAMENTAL6+PV13
+2026-09-06 20:45:24,756 - __main__ - INFO - Result: S=-0.74 F=-0.47 T=0.28 M=-0.00 | ts_decay_linear(zscore(((close - open) / (open + 0.000001) -...
+2026-09-06 20:45:24,756 - __main__ - INFO - Testing [SOCIALMEDIA12]: ts_decay_linear(zscore(rank(ts_zscore(scl12_buzz, 20)) - ran...
+2026-09-06 20:46:50,336 - __main__ - INFO - Result: S=0.44 F=0.07 T=0.99 M=0.00 | ts_decay_linear(zscore(ts_delta(scl12_buzz, 5) / (ts_mean(sn...
+2026-09-06 20:46:50,336 - __main__ - INFO - Testing [SOCIALMEDIA12]: ts_decay_linear(zscore(ts_mean(scl12_buzz, 5) / (ts_mean(snt...
+2026-09-06 20:48:20,129 - __main__ - INFO - Result: S=0.62 F=0.20 T=0.19 M=0.00 | ts_decay_linear(zscore(ts_mean(scl12_buzz, 5) / (ts_mean(snt...
+2026-09-06 20:48:20,130 - __main__ - INFO - Testing [SOCIALMEDIA12]: ts_decay_linear(zscore(if_else(snt_buzz < ts_mean(snt_buzz, ...
+2026-09-06 20:49:01,851 - __main__ - INFO - Result: S=-0.45 F=-0.06 T=0.73 M=-0.00 | ts_decay_linear(zscore(rank(ts_zscore(scl12_buzz, 20)) - ran...
+2026-09-06 20:49:01,851 - __main__ - INFO - Testing [SOCIALMEDIA12]: ts_decay_linear(zscore(ts_std_dev(scl12_buzz, 10) / (ts_std_...
+2026-09-06 20:49:04,450 - __main__ - INFO - Selected delay=1 fields
+2026-09-06 20:49:04,456 - __main__ - INFO - Generating alphas for modules: ANALYST4
