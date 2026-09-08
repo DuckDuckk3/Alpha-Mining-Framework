@@ -4,7 +4,7 @@ An LLM-based intelligent Alpha factor generation system that automatically gener
 
 ## Core Features
 
-* **Dual LLM Support** — Supports both the DeepSeek API and local Ollama models
+* **LLM Support** — Supports the DeepSeek API, Gemini API and local Ollama models
 * **Dynamic Track Weighting** — Reinforcement-learning-style module selection that dynamically adjusts weights according to success rates
 * **Intelligent Field Sampling** — Uses a Log+MinMax+Softmax algorithm to balance field selection and prevent price-volume data from dominating
 * **Nonlinear Genetic Recombination** — Extracts elite factors from the shared pool and uses nonlinear operators such as `ts_corr`, `ts_cov`, and `rank` for crossover
